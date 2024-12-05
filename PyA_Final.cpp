@@ -362,6 +362,10 @@ class operationStack{
             return top+1;
         }
 
+        void clearStack(){
+            top = -1;
+        }
+
         /*Insert image operation into the stack*/
         void push(ImageProcess data){
             //verify full stack
@@ -391,6 +395,7 @@ class operationStack{
 
             return topData;
         }
+
 };
 
 /*Image panel handler*/
@@ -538,8 +543,8 @@ class MyFrame : public wxFrame{
 
 
         void setTextInLog(wxString logMessage);
-        void resetSpinCtrls();
-        void updateUndoRedo();
+        void resetFrame();
+        void updateUndoRedo(int type);
 
         //static event handling
         void OnOpen(wxCommandEvent& event);
@@ -711,8 +716,9 @@ void MyFrame::setTextInLog(wxString logMessage){
 }
 
 /*reset values on spin controls to their default states*/
-void MyFrame::resetSpinCtrls(){
+void MyFrame::resetFrame(){
 
+    //set default values on spin controls
     alpha->SetValue(1.0);
     beta->SetValue(0);
     xUpperLeft->SetRange(0,XYLimit[0]-1);
@@ -723,10 +729,19 @@ void MyFrame::resetSpinCtrls(){
     width->SetValue(0);
     height->SetRange(0,XYLimit[1]-1);
     height->SetValue(0);
+
+    //clear stacks
+    undoStack.clearStack();
+    undoBtn->Disable();
+    redoStack.clearStack();
+    redoBtn->Disable();
+
+    //clear log textbox
+    textlog->Clear();
 }
 
 /*Enable or disable Undo-Redo buttons checking their respective stack*/
-void MyFrame::updateUndoRedo(){
+void MyFrame::updateUndoRedo(int type){
     //check if there are operations to undo
     int stackElements = undoStack.getElements();
     if(stackElements == 0){
@@ -739,13 +754,21 @@ void MyFrame::updateUndoRedo(){
     wxString logMessage = wxString::Format(wxT("Operaciones en pila a descartar: %d/10"),stackElements);
     setTextInLog(logMessage);
 
+    //if operation type is a new operation, clear redo stack
+    if(type)
+        redoStack.clearStack();
+    
     //check if there are operations to redo
-    stackElements = undoStack.getElements();
+    stackElements = redoStack.getElements();
     if(redoStack.getElements() == 0){
         redoBtn->Disable();
     }else{
         redoBtn->Enable();
     }
+
+    //print stack state on log textbox
+    logMessage = wxString::Format(wxT("Operaciones en pila a recuperar: %d/10"),stackElements);
+    setTextInLog(logMessage);
     
 }
 
@@ -777,7 +800,7 @@ void MyFrame::OnOpen(wxCommandEvent& event){
         //get image size
         XYLimit[0] = drawPanel->getWidth();
         XYLimit[1] = drawPanel->getHeight();
-        resetSpinCtrls();
+        resetFrame();
         wxString logMessage = wxString::Format(wxT("Imagen cargada (w:%d,h:%d) ruta:%s"),XYLimit[0],XYLimit[1],path);
         setTextInLog(logMessage);
         
@@ -819,7 +842,7 @@ void MyFrame::OnButtonUndoClick(wxCommandEvent& event){
 
     //add operation to the redostack
     redoStack.push(img_op);
-    updateUndoRedo();
+    updateUndoRedo(0);
 
     //show result in log 
     wxString logMessage = wxString::Format(wxT("Operacion (%s) deshecha sobre x:%d, y:%d, base:%d, altura:%d"),
@@ -844,7 +867,7 @@ void MyFrame::OnButtonRedoClick(wxCommandEvent& event){
 
     //add operation to the undostack
     undoStack.push(img_op);
-    updateUndoRedo();
+    updateUndoRedo(0);
 
     //show result in log 
     wxString logMessage = wxString::Format(wxT("Operacion (%s) recuperada sobre x:%d, y:%d, base:%d, altura:%d"),
@@ -912,7 +935,7 @@ void MyFrame::OnButtonApplyClick(wxCommandEvent& event){
 
     //add operation to the stack
     undoStack.push(img_op);
-    updateUndoRedo();
+    updateUndoRedo(1);
 
     //show result in log 
     wxString logMessage = wxString::Format(wxT("Operacion (%s) aplicada sobre x:%d, y:%d, base:%d, altura:%d"),

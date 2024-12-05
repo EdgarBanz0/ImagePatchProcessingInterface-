@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/edgarbanzo/Programs/PyA/Proyecto/build",
+  "command": "/usr/bin/c++ -DWXUSINGDLL -D_FILE_OFFSET_BITS=64 -D__WXGTK__ -isystem /usr/local/lib/wx/include/gtk3-unicode-3.3 -isystem /usr/local/include/wx-3.3  -pthread -g -o CMakeFiles/proyecto.dir/PyA_Final.cpp.o -c /home/edgarbanzo/Programs/PyA/Proyecto/PyA_Final.cpp",
+  "file": "/home/edgarbanzo/Programs/PyA/Proyecto/PyA_Final.cpp"
+}
+]
